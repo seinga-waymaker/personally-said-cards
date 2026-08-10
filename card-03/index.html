@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personally Said — A Message For You</title>
+<meta name="description" content="Personally Said — a keepsake voice message, compiled just for you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: url('./assets/bg-paper-pink.jpg') center center / cover no-repeat;
+    font-family: 'Space Mono', 'Courier New', monospace;
+    color: #A8154E;
+    position: relative;
+    overflow: hidden;
+  }
+  :root {
+    --polaroid-bg: #FBFAF7;
+    --accent: #C2185B;
+    --accent-deep: #A8154E;
+    --accent-soft: rgba(194, 24, 91, 0.22);
+    --text-on-photo: #FFFFFF;
+  }
+  .credit {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    white-space: nowrap;
+    text-align: center;
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(120, 40, 70, 0.62);
+    text-decoration: none;
+    z-index: 20;
+  }
+  .credit:hover { opacity: 0.75; }
+  .credit u { text-decoration: underline; }
+  @media (max-width: 767px) {
+    .credit { left: 50%; right: auto; transform: translateX(-50%); }
+  }
+
+  @keyframes shellPromptPulse {
+    0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.9; }
+    50% { transform: translate(-50%, -4px) scale(1.03); opacity: 1; }
+  }
+
+  .shell { position: relative; }
+  .design-box {
+    position: absolute; top: 0; left: 0;
+    width: 800px; height: 1252px;
+    transform-origin: top left;
+  }
+
+  .teaser {
+    position: absolute; top: 122px; left: 0; width: 800px; margin: 0;
+    font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 700;
+    line-height: 1.45; text-align: center; color: var(--accent-deep);
+    transition: opacity 0.35s ease;
+  }
+
+  .envelope {
+    position: absolute; left: 10px; width: 780px;
+    transition: top 0.65s cubic-bezier(.45,0,.2,1), height 0.65s cubic-bezier(.45,0,.2,1), transform 0.7s cubic-bezier(.34,1.2,.5,1);
+  }
+  .envelope-open, .envelope-closed { position: absolute; inset: 0; background-size: 100% 100%; background-repeat: no-repeat; }
+  .envelope-open { background-image: url('./assets/envelope-open.png'); background-position: center; z-index: 1; }
+  .envelope-closed { background-image: url('./assets/envelope-closed.png'); background-position: bottom; filter: drop-shadow(0 18px 30px rgba(80, 20, 45, 0.28)); z-index: 3; }
+
+  .open-prompt {
+    position: absolute; left: 400px; top: 719px; transform: translate(-50%, 0);
+    animation: shellPromptPulse 2.4s ease-in-out infinite;
+    background: var(--polaroid-bg); border: none; color: var(--accent);
+    font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.04em;
+    padding: 14px 26px; border-radius: 999px; cursor: pointer; z-index: 10;
+    box-shadow: 0 8px 20px -8px rgba(80, 20, 45, 0.45); white-space: nowrap;
+  }
+
+  .polaroid-wrap {
+    position: absolute; left: 112px; top: 270px; width: 576px; z-index: 2;
+    transform-origin: bottom center;
+    transition: transform 0.85s cubic-bezier(.3,1.22,.45,1), opacity 0.4s ease;
+    transform: translateY(47px) scale(0.7);
+    opacity: 0;
+  }
+  .polaroid {
+    position: relative; width: 576px; height: 692px;
+    background: url('./assets/polaroid-card.png') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 22px 34px rgba(80, 20, 45, 0.3));
+  }
+  .bow {
+    position: absolute; top: -16px; left: 299px; width: 131px; height: 121px; margin-left: -84px;
+    background: url('./assets/bow.png') center / contain no-repeat; pointer-events: none;
+  }
+  .message-text {
+    position: absolute; right: 46px; bottom: 186px; margin: 0; width: 250px;
+    font-family: 'Caveat', 'Segoe Script', cursive; font-size: 44px; line-height: 1.06; font-weight: 600;
+    text-align: center; color: var(--text-on-photo); transform: rotate(-9deg);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.28); white-space: pre-line;
+  }
+
+  .audio-zone {
+    position: absolute; left: 112px; top: 1022px; width: 576px;
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(.34,1.1,.64,1);
+    opacity: 0; transform: translateY(-14px);
+  }
+  .audio-row { display: flex; align-items: center; gap: 22px; }
+  .play-btn {
+    flex: none; width: 64px; height: 64px; border-radius: 50%; border: 2.5px solid var(--accent);
+    background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .play-btn:hover { opacity: 0.72; }
+  .play-btn:disabled { opacity: 0.35; cursor: default; }
+  .icon-play {
+    width: 0; height: 0; border-top: 11px solid transparent; border-bottom: 11px solid transparent;
+    border-left: 18px solid var(--accent); margin-left: 5px;
+  }
+  .icon-pause { display: flex; gap: 6px; }
+  .icon-pause span { width: 5px; height: 22px; background: var(--accent); border-radius: 2px; }
+  .audio-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .track-label {
+    font-family: 'Space Mono', monospace; font-size: 19px; font-weight: 700; color: var(--accent-deep);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .seek-bar { position: relative; height: 9px; border-radius: 999px; background: var(--accent-soft); cursor: pointer; }
+  .seek-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); width: 0%; }
+  .time-row { display: flex; align-items: center; justify-content: space-between; }
+  .time-row span { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; color: var(--accent-deep); }
+
+  .tuck-away {
+    position: absolute; left: 400px; top: 1172px; transform: translateX(-50%);
+    background: none; border: none; padding: 10px 14px; font-family: 'Space Mono', monospace; font-size: 15px;
+    color: var(--accent-deep); text-decoration: underline; white-space: nowrap; cursor: pointer;
+    transition: opacity 0.45s ease; opacity: 0; font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<a class="credit" href="https://personallysaid.co" target="_blank" rel="noopener">PS - This was made by <u>Personally Said</u></a>
+
+<div class="shell">
+  <div class="design-box" id="designBox">
+    <p class="teaser" id="teaser">Someone sent you <br>a special message!</p>
+
+    <div class="envelope" id="envelope">
+      <div class="envelope-open"></div>
+      <div class="envelope-closed"></div>
+    </div>
+
+    <button class="open-prompt" id="openPrompt">Tap to open</button>
+
+    <div class="polaroid-wrap" id="polaroidWrap">
+      <div class="polaroid">
+        <div class="bow"></div>
+        <p class="message-text" id="messageText">A message just for you.</p>
+      </div>
+    </div>
+
+    <div class="audio-zone" id="audioZone">
+      <audio id="audioEl" preload="none"></audio>
+      <div class="audio-row">
+        <button class="play-btn" id="playBtn" disabled>
+          <span class="icon-play" id="iconPlay"></span>
+          <span class="icon-pause" id="iconPause" style="display:none"><span></span><span></span></span>
+        </button>
+        <div class="audio-meta">
+          <span class="track-label" id="trackLabel">Voice message</span>
+          <div class="seek-bar" id="seekBar"><div class="seek-fill" id="seekFill"></div></div>
+          <div class="time-row">
+            <span id="elapsedLabel">00:00</span>
+            <span id="totalLabel">00:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="tuck-away" id="tuckAway"><b>Tuck it back in</b></button>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ---------------------------------------------------------------
+  // 1. Fit the 800x1252 design box to the viewport (scale as one unit)
+  // ---------------------------------------------------------------
+  var designBox = document.getElementById('designBox');
+  var shell = document.querySelector('.shell');
+
+  function fit() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var s = Math.min(1, (vw - 32) / 800, (vh - 88) / 1252);
+    shell.style.width = Math.round(800 * s) + 'px';
+    shell.style.height = Math.round(1252 * s) + 'px';
+    designBox.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  // ---------------------------------------------------------------
+  // 2. Envelope reveal state machine (open / tuck away)
+  // ---------------------------------------------------------------
+  var ENV_BOTTOM = 1000, ENV_H_OPEN = 983, ENV_H_SHUT = 793;
+  var envelope = document.getElementById('envelope');
+  var envOpen = envelope.querySelector('.envelope-open');
+  var envClosed = envelope.querySelector('.envelope-closed');
+  var openPrompt = document.getElementById('openPrompt');
+  var teaser = document.getElementById('teaser');
+  var polaroidWrap = document.getElementById('polaroidWrap');
+  var audioZone = document.getElementById('audioZone');
+  var tuckAwayBtn = document.getElementById('tuckAway');
+
+  var flapOpen = false, cardOut = false, contentVisible = false;
+  var timers = [];
+
+  function setEnvelopeGeometry() {
+    var envH = flapOpen ? ENV_H_OPEN : ENV_H_SHUT;
+    envelope.style.top = (ENV_BOTTOM - envH) + 'px';
+    envelope.style.height = envH + 'px';
+    envelope.style.cursor = flapOpen ? 'default' : 'pointer';
+    envelope.style.transform = flapOpen ? 'rotate(0deg)' : 'rotate(-3.5deg)';
+    envOpen.style.transition = flapOpen ? 'opacity 0.4s ease 0.28s' : 'opacity 0.28s ease';
+    envOpen.style.opacity = flapOpen ? '1' : '0';
+    envClosed.style.transition = flapOpen ? 'opacity 0.28s ease' : 'opacity 0.4s ease 0.28s';
+    envClosed.style.opacity = flapOpen ? '0' : '1';
+    teaser.style.opacity = flapOpen ? '0' : '1';
+    openPrompt.style.display = flapOpen ? 'none' : 'block';
+  }
+
+  function setCardGeometry() {
+    polaroidWrap.style.transform = cardOut ? 'translateY(0) scale(1)' : 'translateY(47px) scale(0.7)';
+    polaroidWrap.style.opacity = cardOut ? '1' : '0';
+  }
+
+  function setContentVisibility() {
+    audioZone.style.transitionDelay = contentVisible ? '0.05s' : '0s';
+    audioZone.style.opacity = contentVisible ? '1' : '0';
+    audioZone.style.transform = contentVisible ? 'translateY(0)' : 'translateY(-14px)';
+    tuckAwayBtn.style.opacity = contentVisible && flapOpen ? '1' : '0';
+    tuckAwayBtn.style.display = flapOpen ? 'block' : 'none';
+  }
+
+  function openEnvelope() {
+    if (flapOpen) return;
+    flapOpen = true;
+    setEnvelopeGeometry();
+    timers.push(setTimeout(function () { cardOut = true; setCardGeometry(); }, 520));
+    timers.push(setTimeout(function () {
+      contentVisible = true;
+      setContentVisibility();
+      if (window.__psAutoPlay && audioEl.currentSrc) { audioEl.play().catch(function(){}); }
+    }, 1150));
+  }
+
+  function tuckAway() {
+    if (!flapOpen) return;
+    audioEl.pause();
+    contentVisible = false; cardOut = false;
+    setContentVisibility(); setCardGeometry();
+    timers.push(setTimeout(function () { flapOpen = false; setEnvelopeGeometry(); }, 420));
+  }
+
+  envelope.addEventListener('click', openEnvelope);
+  openPrompt.addEventListener('click', openEnvelope);
+  tuckAwayBtn.addEventListener('click', tuckAway);
+
+  setEnvelopeGeometry(); setCardGeometry(); setContentVisibility();
+
+  // ---------------------------------------------------------------
+  // 3. Audio player (native <audio>, scrub/seek enabled)
+  // ---------------------------------------------------------------
+  var audioEl = document.getElementById('audioEl');
+  var playBtn = document.getElementById('playBtn');
+  var iconPlay = document.getElementById('iconPlay');
+  var iconPause = document.getElementById('iconPause');
+  var seekBar = document.getElementById('seekBar');
+  var seekFill = document.getElementById('seekFill');
+  var elapsedLabel = document.getElementById('elapsedLabel');
+  var totalLabel = document.getElementById('totalLabel');
+
+  function formatTime(sec) {
+    if (!sec || !isFinite(sec) || sec < 0) return '00:00';
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function setPlayingUI(isPlaying) {
+    iconPlay.style.display = isPlaying ? 'none' : 'block';
+    iconPause.style.display = isPlaying ? 'flex' : 'none';
+  }
+
+  playBtn.addEventListener('click', function () {
+    if (!audioEl.currentSrc) return;
+    if (audioEl.paused) audioEl.play().catch(function(){}); else audioEl.pause();
+  });
+  seekBar.addEventListener('click', function (e) {
+    if (!audioEl.currentSrc || !audioEl.duration) return;
+    var rect = seekBar.getBoundingClientRect();
+    var ratio = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    audioEl.currentTime = ratio * audioEl.duration;
+  });
+  audioEl.addEventListener('loadedmetadata', function () {
+    totalLabel.textContent = formatTime(audioEl.duration);
+    playBtn.disabled = false;
+  });
+  audioEl.addEventListener('timeupdate', function () {
+    elapsedLabel.textContent = formatTime(audioEl.currentTime);
+    var pct = audioEl.duration ? Math.min(audioEl.currentTime / audioEl.duration, 1) * 100 : 0;
+    seekFill.style.width = pct + '%';
+  });
+  audioEl.addEventListener('play', function () { setPlayingUI(true); });
+  audioEl.addEventListener('pause', function () { setPlayingUI(false); });
+  audioEl.addEventListener('ended', function () { setPlayingUI(false); });
+
+  // ---------------------------------------------------------------
+  // 4. Loader — reads ?order=CODE, fetches the matching data record,
+  //    and populates recipient message + audio source.
+  // ---------------------------------------------------------------
+  var trackLabel = document.getElementById('trackLabel');
+  var messageText = document.getElementById('messageText');
+
+  var params = new URLSearchParams(window.location.search);
+  var orderCode = (params.get('order') || params.get('code') || '').trim().toUpperCase();
+
+  if (!orderCode) {
+    trackLabel.textContent = 'No order code provided';
+  } else {
+    fetch('./data/' + orderCode + '.json', { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error('not found'); return res.json(); })
+      .then(function (data) {
+        if (data.message) messageText.textContent = data.message;
+        if (data.recipientName) {
+          trackLabel.textContent = data.trackLabel || ('A voice message for ' + data.recipientName);
+          document.title = 'A Message For ' + data.recipientName + ' — Personally Said';
+        }
+        if (data.audioUrl) {
+          audioEl.src = data.audioUrl;
+          window.__psAutoPlay = false;
+        } else {
+          trackLabel.textContent = (data.recipientName ? trackLabel.textContent + ' — ' : '') + 'audio coming soon';
+        }
+      })
+      .catch(function () {
+        trackLabel.textContent = "We couldn't find that card";
+        messageText.textContent = "Hmm — this link doesn't match a card yet.";
+      });
+  }
+})();
+</script>
+</body>
+</html>
